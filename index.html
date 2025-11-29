@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dota 2 — Новости</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e3a5f">
+
+  <style>
+    :root {
+      --bg-primary: #0a0e17;
+      --bg-secondary: #131c2c;
+      --text: #e0e1dd;
+      --radiant: #1e3a5f;
+      --dire: #5f1e1e;
+      --menu-blue: #2a475e;
+      --valve-orange: #ff5400;
+      --border: #2c3e5b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), #0c111b);
+      color: var(--text);
+      padding: 20px;
+      line-height: 1.6;
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(30, 58, 95, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+      animation: glow-move 15s infinite ease-in-out;
+      z-index: 0;
+    }
+
+    @keyframes glow-move {
+      0% { transform: translate(10%, 10%); }
+      50% { transform: translate(-10%, -10%); }
+      100% { transform: translate(10%, 10%); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+
+    @keyframes pulse-orange {
+      0%, 100% { text-shadow: 0 0 12px var(--valve-orange), 0 0 20px rgba(255, 84, 0, 0.5); }
+      50% { text-shadow: 0 0 5px var(--valve-orange); }
+    }
+
+    .patch-alert {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(to bottom, #5f1e1e, #ff5400);
+      color: white;
+      font-weight: bold;
+      font-size: 1.4em;
+      padding: 16px 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(255, 84, 0, 0.6), inset 0 0 10px rgba(0, 0, 0, 0.3);
+      z-index: 9999;
+      text-align: center;
+      border: 2px solid #fff;
+      animation: shake 0.5s ease-in-out, pulse-orange 2s infinite;
+      width: 80%;
+      max-width: 500px;
+      display: none;
+    }
+
+    .patch-alert::after {
+      content: '🔥 ПАТЧ ВЫШЕЛ — ПРОВЕРЬ ИЗМЕНЕНИЯ!';
+      display: block;
+      font-size: 0.9em;
+      color: #fff;
+      margin-top: 4px;
+      opacity: 0.9;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 25px;
+      position: relative;
+      z-index: 10;
+    }
+
+    header h1 {
+      color: var(--valve-orange);
+      font-size: 2.6em;
+      margin: 0;
+      text-shadow: 0 0 20px var(--valve-orange);
+      animation: pulse-orange 2.5s infinite;
+      letter-spacing: 1px;
+    }
+
+    header p {
+      color: #999;
+      margin-top: 8px;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 25px;
+      justify-content: center;
+      position: relative;
+      z-index: 10;
+    }
+
+    .box {
+      flex: 1;
+      min-width: 300px;
+      max-width: 500px;
+      background: var(--bg-secondary);
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(4px);
+      transition: transform 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(to right, transparent, var(--radiant), var(--dire), transparent);
+    }
+
+    .box h2 {
+      margin: 0 0 16px 0;
+      text-align: center;
+      color: var(--valve-orange);
+      font-size: 1.5em;
+      font-weight: 700;
+      text-shadow: 0 0 8px rgba(255, 84, 0, 0.5);
+    }
+
+    /* === Прокрутка внутри блока Reddit — увеличенная высота === */
+    .scrollable-news {
+      max-height: 400px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      background: rgba(19, 28, 44, 0.6);
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .scrollable-news::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .scrollable-news::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 3px;
+    }
+
+    .scrollable-news::-webkit-scrollbar-thumb {
+      background: #3a86ff;
+      border-radius: 3px;
+    }
+
+    .scrollable-news::-webkit-scrollbar-thumb:hover {
+      background: #ff5400;
+    }
+
+    .news-item {
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px dashed var(--border);
+      transition: background 0.2s ease;
+    }
+
+    .news-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .news-title a {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .news-title a:hover {
+      color: #3a86ff;
+      text-decoration: underline;
+    }
+
+    .news-meta {
+      font-size: 0.85em;
+      color: #888;
+      margin-top: 6px;
+    }
+
+    .patch-badge {
+      display: inline-block;
+      background: var(--valve-orange);
+      color: white;
+      font-size: 0.8em;
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 6px;
+      margin-right: 6px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+      text-shadow: 0 0 2px #000;
+      animation: pulse-orange 1.8s infinite alternate;
+    }
+
+    .post-image {
+      margin-top: 12px;
+      border-radius: 10px;
+      max-width: 100%;
+      height: auto;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .loading {
+      font-style: italic;
+      color: #888;
+      text-align: center;
+      padding: 12px 0;
+    }
+
+    .error {
+      color: #e74c3c;
+      text-align: center;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      color: #777;
+      font-size: 0.9em;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+      header h1 {
+        font-size: 1.9em;
+      }
+      .box h2 {
+        font-size: 1.4em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Баннер "Новый патч вышел!" -->
+  <div id="patch-alert" class="patch-alert">
+    НОВЫЙ ПАТЧ ВЫШЕЛ!
+  </div>
+
+  <header>
+    <h1>🔥 Dota 2 Live News</h1>
+    <p>Новости, патчи, мемы — с автоматическим переводом</p>
+  </header>
+
+  <div class="container">
+    <!-- Reddit с увеличенной высотой -->
+    <div class="box">
+      <h2>Reddit</h2>
+      <div class="scrollable-news">
+        <ul id="reddit-news">
+          <li class="loading">Ищем патчи...</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Twitter -->
+    <div class="box">
+      <h2>Twitter</h2>
+      <div class="news-item">
+        <p>Актуальный пост от <a href="https://twitter.com/ValveDota" target="_blank">@ValveDota</a>:</p>
+        <blockquote class="twitter-tweet" data-theme="dark">
+          <a href="https://twitter.com/ValveDota/status/1785083929732780123"></a>
+        </blockquote>
+        <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+      </div>
+
+      <h3 style="margin:20px 0 10px; color:#888">Обсуждение #Dota2</h3>
+      <iframe
+        src="https://twitframe.com/show?url=https%3A%2F%2Ftwitter.com%2Fsearch%3Fq%3D%23Dota2%26src%3Dtyped_query%26f%3Dtop"
+        width="100%"
+        height="300"
+        style="border:none; border-radius:8px;"
+        title="Топ твиты #Dota2">
+      </iframe>
+    </div>
+  </div>
+
+  <footer>
+    <p>Источники: Reddit, Twitter. Обновляется каждые 5 минут.</p>
+  </footer>
+
+  <script>
+    // Показать баннер "Новый патч вышел!"
+    function showPatchAlert() {
+      const alert = document.getElementById('patch-alert');
+      alert.style.display = 'block';
+      setTimeout(() => { alert.style.display = 'none'; }, 10000);
+    }
+
+    // Перевод текста
+    async function translateText(text) {
+      if (!text || /[а-яА-ЯёЁ]/.test(text)) return text;
+      try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(text)}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        return data[0][0][0];
+      } catch (err) {
+        console.warn("Перевод не удался:", text);
+        return text;
+      }
+    }
+
+    // Проверка патча
+    function isPatch(text) {
+      return /patch|update|7\.\d|hotfix|balance|changelog|build|rework|nerf|buff|версия|обновление|патч/i.test(text.toLowerCase());
+    }
+
+    // Получение изображения
+    function getRedditImage(post) {
+      const url = post.data.url;
+      if (/\.(jpg|jpeg|png|gif|webp)$/i.test(url)) return url;
+      if (post.data.preview?.images?.length > 0) {
+        return post.data.preview.images[0].source.url.replace(/&amp;/g, '&');
+      }
+      if (post.data.url_overridden_by_dest) {
+        const dest = post.data.url_overridden_by_dest;
+        if (/\.(jpg|jpeg|png|gif|webp)$/i.test(dest)) return dest;
+      }
+      return null;
+    }
+
+    // Загрузка новостей
+    async function loadReddit() {
+      const container = document.getElementById('reddit-news');
+      container.innerHTML = '<li class="loading">Ищем патчи...</li>';
+
+      try {
+        const response = await fetch('/api/reddit');
+        if (!response.ok) throw new Error('Network error');
+        const data = await response.json();
+        const posts = data.data.children.slice(0, 10);
+
+        container.innerHTML = '';
+        let patchFound = false;
+
+        for (const post of posts) {
+          const title = post.data.title;
+          const translatedTitle = await translateText(title);
+          const isPatchPost = isPatch(title);
+          if (isPatchPost) patchFound = true;
+
+          const badge = isPatchPost ? '<span class="patch-badge">ПАТЧ</span>' : '';
+          const img = getRedditImage(post);
+          const imgHtml = img ? `<img src="${img}" alt="Фото" class="post-image">` : '';
+
+          const li = document.createElement('li');
+          li.className = 'news-item';
+          li.innerHTML = `
+            <div class="news-title">
+              ${badge}
+              <a href="https://reddit.com${post.data.permalink}" target="_blank">${translatedTitle}</a>
+            </div>
+            <div class="news-meta">
+              u/${post.data.author} • ${new Date(post.data.created_utc * 1000).toLocaleDateString()} • 💬 ${post.data.num_comments}
+            </div>
+            ${imgHtml}
+          `;
+          container.appendChild(li);
+        }
+
+        if (patchFound) showPatchAlert();
+      } catch (err) {
+        container.innerHTML = '<li class="error">Ошибка загрузки</li>';
+        console.error(err);
+      }
+    }
+
+    // Автоперезагрузка
+    setTimeout(() => {
+      location.reload();
+    }, 300000);
+
+    // PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(reg => console.log('SW: готов'))
+          .catch(err => console.log('SW: ошибка', err));
+      });
+    }
+
+    // Загрузка
+    loadReddit();
+  </script>
+</body>
+</html>

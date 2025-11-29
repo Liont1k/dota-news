@@ -1,0 +1,10 @@
+{
+  "title": "Dota 2 — 新闻与更新",
+  "subtitle": "来自 Reddit、Twitter 和 Steam 的最新消息",
+  "tweets": "推文",
+  "official_patches": "官方更新",
+  "loading": "加载中",
+  "error": "加载失败",
+  "new_patch_alert": "新版本已发布！刷新页面查看。",
+  "footer": "自动更新。来源：Reddit、Twitter、Steam。"
+}

@@ -1,0 +1,10 @@
+{
+  "title": "Dota 2 — Новости и патчи",
+  "subtitle": "Свежие обновления с Reddit, Twitter и Steam",
+  "tweets": "Твиты",
+  "official_patches": "Официальные патчи",
+  "loading": "Загрузка",
+  "error": "Ошибка загрузки",
+  "new_patch_alert": "ВЫШЕЛ НОВЫЙ ПАТЧ! Обновите страницу.",
+  "footer": "Обновляется автоматически. Источники: Reddit, Twitter, Steam."
+}
